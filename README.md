@@ -5,7 +5,7 @@ be calm
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midnight Desktop - Calm Music Edition</title>
+    <title>Midnight Desktop - Persistent Wallpaper Edition</title>
     <style>
         :root {
             --monitor-frame: #1a1a1a;
@@ -74,8 +74,7 @@ be calm
 
         .setting-row { margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 10px; }
         .btn { background: #4ea8de; border: none; color: white; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
-        .instructions { font-size: 11px; color: #aaa; margin-top: 5px; line-height: 1.4; }
-
+        
         .game-canvas { flex: 1; background: #000; position: relative; overflow: hidden; }
         .star { position: absolute; width: 2px; height: 2px; background: white; border-radius: 50%; }
         .neon-plant { position: absolute; bottom: 0; width: 2px; transition: height 1s; }
@@ -90,7 +89,7 @@ be calm
         #file-input { display: none; }
     </style>
 </head>
-<body>
+<body onload="checkSavedWallpaper()">
 
 <audio id="bgMusic" loop>
     <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
@@ -117,21 +116,19 @@ be calm
                                 </div>
                             </div>
                             <div class="setting-row">
-                                <h3>🎮 Game Guides</h3>
-                                <p class="instructions">✨ <b>Star Weave:</b> Click to weave stars.</p>
-                                <p class="instructions">🌵 <b>Neon Grow:</b> Click to grow neon plants.</p>
-                                <p class="instructions">🌧️ <b>Rain:</b> Click to toggle the downpour.</p>
-                                <p class="instructions">🎨 <b>Sketch:</b> Drag mouse to draw.</p>
-                                <p class="instructions">🧩 <b>Tiles:</b> Click tiles to change color.</p>
-                                <p class="instructions">🍃 <b>Breeze:</b> Click to release leaves.</p>
+                                <h3>💾 Storage</h3>
+                                <button class="btn" style="background:#e63946" onclick="resetWallpaper()">Reset Wallpaper</button>
                             </div>
                         </div>
                     </div>
 
                     <div id="wallpaper-win" class="window">
                         <div class="win-header"><span>Wallpaper Settings</span><span style="cursor:pointer" onclick="closeApp('wallpaper-win')">✖</span></div>
-                        <div class="win-body"><label for="file-input" style="background:#4ea8de; padding:10px; border-radius:4px; cursor:pointer; color:white; display:block; text-align:center;">📁 Upload Image</label>
-                        <input type="file" id="file-input" accept="image/*" onchange="uploadWallpaper(event)"></div>
+                        <div class="win-body">
+                            <p>Upload a photo to set as your desktop background. It will save automatically!</p>
+                            <label for="file-input" style="background:#4ea8de; padding:10px; border-radius:4px; cursor:pointer; color:white; display:block; text-align:center;">📁 Upload Image</label>
+                            <input type="file" id="file-input" accept="image/*" onchange="uploadWallpaper(event)">
+                        </div>
                     </div>
 
                     <div id="star-win" class="window"><div class="win-header"><span>StarWeave.sys</span><span onclick="closeApp('star-win')">✖</span></div><div class="game-canvas" onclick="addStar(event)"></div></div>
@@ -163,6 +160,32 @@ be calm
     const music = document.getElementById('bgMusic');
     let isPlaying = false;
 
+    // WALLPAPER PERSISTENCE
+    function uploadWallpaper(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const imgData = e.target.result;
+                document.getElementById('desktop').style.backgroundImage = `url('${imgData}')`;
+                localStorage.setItem('userWallpaper', imgData); // Save to browser
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function checkSavedWallpaper() {
+        const saved = localStorage.getItem('userWallpaper');
+        if (saved) {
+            document.getElementById('desktop').style.backgroundImage = `url('${saved}')`;
+        }
+    }
+
+    function resetWallpaper() {
+        localStorage.removeItem('userWallpaper');
+        document.getElementById('desktop').style.backgroundImage = "linear-gradient(to bottom, #0a0b1e, #16213e)";
+    }
+
     function toggleMusic() {
         if (isPlaying) { music.pause(); document.getElementById('musicBtn').innerText = "Play Music";
         } else { music.play(); document.getElementById('musicBtn').innerText = "Stop Music"; }
@@ -184,16 +207,7 @@ be calm
     }
     function closeApp(id) { document.getElementById(id).style.display = 'none'; }
 
-    function uploadWallpaper(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = e => document.getElementById('desktop').style.backgroundImage = `url('${e.target.result}')`;
-            reader.readAsDataURL(file);
-        }
-    }
-
-    // GAME LOGICS
+    // GAMES
     function addStar(e) {
         const s = document.createElement('div'); s.className = 'star';
         s.style.left = e.offsetX + 'px'; s.style.top = e.offsetY + 'px';
